@@ -144,6 +144,11 @@ class Cleaner
             }
 
             if ($attempts > $this->task['attempts'] || !$this->engine->removeFailureJob($offset)) {
+                // Handle mail alert
+                if (isset($alert) && $alert) {
+                    $this->engine->sendMail($payload, 'failure');
+                }
+
                 $items = $this->next($offset++);
                 continue;
             }
