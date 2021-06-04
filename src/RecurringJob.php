@@ -199,11 +199,10 @@ class RecurringJob
     }
 
     /**
-     * @param bool $trackStatus
      *
      * @return bool
      */
-    public function schedule($trackStatus = false)
+    public function schedule()
     {
         if ($this->engine->hasRecurringJobs($this->name)) {
             return false;
@@ -225,7 +224,7 @@ class RecurringJob
         $this->args['timestamp'] = $next->getTimestamp();
 
         // Enqueue current job
-        $this->engine->enqueueAt($next, $this->name, $this->queue, $this->class, $this->args, $trackStatus);
+        $this->engine->enqueueAt($next, $this->name, $this->queue, $this->class, $this->args);
 
         // Process recurring jobs
         $this->engine->processRecurringJobs($this->name);

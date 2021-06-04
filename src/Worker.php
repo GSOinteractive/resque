@@ -117,6 +117,11 @@ class Worker
     private $cleanerTasks = null;
 
     /**
+     * @var Heart
+     */
+    private $heart;
+
+    /**
      * @var int Interval to sleep for between checking schedules.
      */
     const SLEEP_INTERVAL = 5;
@@ -373,11 +378,11 @@ class Worker
 
             $this->dispatcher->dispatch(ResqueEvents::JOB_AFTER_PERFORM, new JobEvent($job));
         } catch (DontPerform $e) {
-            return $this->jobFail($job, $e);
+            $this->jobFail($job, $e);
         } catch (\Exception $e) {
-            return $this->jobFail($job, $e);
+            $this->jobFail($job, $e);
         } catch (\Throwable $e) {
-            return $this->jobFail($job, $e);
+            $this->jobFail($job, $e);
         }
 
         $job->updateStatus(Status::STATUS_COMPLETE);
@@ -788,7 +793,7 @@ class Worker
      * Searches for any items that are due to be scheduled in Resque
      * and adds them to the appropriate job queue in Resque.
      *
-     * @param DateTime|int $timestamp Search for any items up to this timestamp to schedule.
+     * @param \DateTime|int $timestamp Search for any items up to this timestamp to schedule.
      */
     public function handleDelayedItems($timestamp = null)
     {

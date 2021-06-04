@@ -127,6 +127,8 @@ use AllProgrammic\Component\Redis\Exception;
  * @method string|int    script(string $command, string $arg1 = null)
  * @method string|int|array|bool eval(string $script, array $keys = NULL, array $args = NULL)
  * @method string|int|array|bool evalSha(string $script, array $keys = NULL, array $args = NULL)
+ * @method zrem(string $string, mixed $timestamp)
+ * @method zadd(string $string, int $timestamp, int $timestamp1)
  */
 class Redis
 {

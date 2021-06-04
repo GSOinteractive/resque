@@ -122,7 +122,7 @@ class CronExpression
      * @param string $expression The CRON expression to validate.
      *
      * @return bool True if a valid CRON expression was passed. False if not.
-     * @see \Cron\CronExpression::factory
+     * @see CronExpression::factory
      */
     public static function isValidExpression($expression)
     {
@@ -241,7 +241,7 @@ class CronExpression
      *
      * @return \DateTime
      * @throws \RuntimeException on too many iterations
-     * @see \Cron\CronExpression::getNextRunDate
+     * @see CronExpression::getNextRunDate
      */
     public function getPreviousRunDate($currentTime = 'now', $nth = 0, $allowCurrentDate = false, $timeZone = null)
     {

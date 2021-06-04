@@ -25,6 +25,11 @@ class Charts
     const INDEX_CLEANED = 'charts:cleaned';
 
     /**
+     * @var \AllProgrammic\Component\Resque\Redis
+     */
+    private $backend;
+
+    /**
      * Redis constructor.
      *
      * @param \AllProgrammic\Component\Resque\Redis $backend

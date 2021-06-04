@@ -26,6 +26,11 @@ class Lock
     const LOCK_INTERVAL = 30;
 
     /**
+     * @var Redis
+     */
+    private $backend;
+
+    /**
      * Lock constructor.
      *
      * @param Redis $backend

@@ -17,10 +17,8 @@ use AllProgrammic\Component\Resque\Delayed\DelayedInterface;
 use AllProgrammic\Component\Resque\Events\DelayedEvent;
 use AllProgrammic\Component\Resque\Job\DirtyExitException;
 use AllProgrammic\Component\Resque\Job\InvalidTimestampException;
-use AllProgrammic\Component\Resque\Processed\ProcessedInterface;
 use AllProgrammic\Component\Resque\Cleaner\CleanerInterface;
 use AllProgrammic\Component\Resque\Recurring\RecurringInterface;
-use PhpSpec\Wrapper\DelayedCall;
 use Psr\Log\LoggerInterface;
 use AllProgrammic\Component\Resque\Events\QueueEvent;
 use AllProgrammic\Component\Resque\Failure\FailureInterface;
@@ -1173,7 +1171,7 @@ class Engine
     /**
      * Directly append an item to the delayed queue schedule.
      *
-     * @param DateTime|int $timestamp Timestamp job is scheduled to be run at.
+     * @param \DateTime|int $timestamp Timestamp job is scheduled to be run at.
      * @param array $item Hash of item to be pushed to schedule.
      */
     public function delayedPush($timestamp, $item)
@@ -1241,7 +1239,7 @@ class Engine
     /**
      * Convert a timestamp in some format in to a unix timestamp as an integer.
      *
-     * @param DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
+     * @param \DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
      * @return int Timestamp
      * @throws InvalidTimestampException
      */
@@ -1285,7 +1283,7 @@ class Engine
      * that any jobs scheduled for the past when the worker wasn't running are
      * also queued up.
      *
-     * @param DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
+     * @param \DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
      *                                Defaults to now.
      * @return int|false UNIX timestamp, or false if nothing to run.
      */
@@ -1309,7 +1307,7 @@ class Engine
     /**
      * Pop a job off the delayed queue for a given timestamp.
      *
-     * @param DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
+     * @param \DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
      * @return array Matching job at timestamp.
      */
     public function nextItemForTimestamp($timestamp)
@@ -1328,7 +1326,7 @@ class Engine
      *
      * @param string $class Name of job class.
      * @param string $queue Name of queue.
-     * @throws Resque_Exception
+     * @throws Exception
      */
     private function validateJob($class, $queue)
     {
