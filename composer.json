@@ -37,5 +37,8 @@
   },
   "support": {
     "docs": "https://github.com/GSOinteractive/resque/wiki"
+  },
+  "replace": {
+    "allprogrammic/resque": "*"
   }
 }
