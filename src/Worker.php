@@ -11,17 +11,16 @@
 
 namespace AllProgrammic\Component\Resque;
 
-use AllProgrammic\Component\Resque\Events\QueueEvent;
-use AllProgrammic\Component\Resque\Job\InvalidRecurringJobException;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use AllProgrammic\Component\Resque\Events\JobEvent;
 use AllProgrammic\Component\Resque\Events\JobFailEvent;
+use AllProgrammic\Component\Resque\Events\QueueEvent;
 use AllProgrammic\Component\Resque\Events\WorkerEvent;
 use AllProgrammic\Component\Resque\Failure\FailureInterface;
 use AllProgrammic\Component\Resque\Job\DirtyExitException;
 use AllProgrammic\Component\Resque\Job\DontPerform;
 use AllProgrammic\Component\Resque\Job\Status;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Worker
@@ -161,6 +160,12 @@ class Worker
 
         if (!is_array($queues)) {
             $queues = [$queues];
+        }
+        // s'il n'y a que des exclusion alors on ajoute le wildcard
+        if (empty(array_filter($queues, function ($queue) {
+            return strpos($queue, '!') !== 0;
+        }))) {
+            array_unshift($queues, '*');
         }
 
         $this->cyclic = $cyclic;
@@ -472,28 +477,39 @@ class Worker
      * If * is found in the list of queues, every queue will be searched in
      * alphabetic order. (@see $fetch)
      *
-     * @param boolean $fetch If true, and the queue is set to *, will fetch
-     * all queue names from redis.
      * @return array Array of associated queues.
      */
-    public function queues($fetch = true)
+    public function queues()
     {
-        if (!in_array('*', $this->queues) || $fetch == false) {
-            if (count($this->queues) === 1 || !$this->cyclic) {
-                return $this->queues;
-            }
+        $queues = $this->effectiveQueues();
 
-            return $this->handleCyclicMode($this->queues);
-        }
-
-        $queues = $this->engine->queues();
         $queues = $this->handleCyclicMode($queues);
-
         if (!$this->cyclic) {
             sort($queues);
         }
 
         return $queues;
+    }
+
+    public function effectiveQueues(): array
+    {
+        $dispatch = [
+            'selected' => [],
+            'excluded' => [],
+        ];
+        array_walk($this->queues, function($queue, $k) use (&$dispatch) {
+            if (strpos($queue, '!') === 0) {
+                $dispatch['excluded'] = substr($queue, 1);
+            } else {
+                $dispatch['selected'] = $queue;
+            }
+        });
+
+        if (in_array('*', $dispatch['selected'])) {
+            $dispatch['selected'] = $this->engine->queues();
+        }
+
+        return array_diff($dispatch['selected'], $dispatch['excluded']);
     }
 
     /**
@@ -523,11 +539,8 @@ class Worker
      */
     public function matchQueues($queue)
     {
-        if (in_array('*', $this->queues)) {
-            return true;
-        }
-
-        return in_array($queue, $this->queues);
+        $queues = $this->effectiveQueues();
+        return in_array($queue, $queues);
     }
 
     /**
