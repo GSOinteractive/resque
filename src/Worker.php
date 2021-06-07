@@ -499,9 +499,9 @@ class Worker
         ];
         array_walk($this->queues, function($queue, $k) use (&$dispatch) {
             if (strpos($queue, '!') === 0) {
-                $dispatch['excluded'] = substr($queue, 1);
+                $dispatch['excluded'][] = substr($queue, 1);
             } else {
-                $dispatch['selected'] = $queue;
+                $dispatch['selected'][] = $queue;
             }
         });
 
