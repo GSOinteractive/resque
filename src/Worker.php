@@ -273,7 +273,6 @@ class Worker
                 break;
             }
 
-            $this->handleCleanerTasks();
             $this->handleDelayedItems();
             $this->handleRecurredItems();
 
@@ -299,6 +298,8 @@ class Worker
             }
 
             if (!$job || !($job instanceof Job)) {
+                $this->handleCleanerTasks();
+
                 // For an interval of 0, break now - helps with unit testing etc
                 if ($interval == 0) {
                     break;
