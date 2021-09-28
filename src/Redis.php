@@ -408,7 +408,7 @@ class Redis
         $it = null;
         do {
             // Scan for some keys
-            $keys = $this->scan($it, $match, $count);
+            $keys = $this->__call('scan', [&$it, $match, $count]);
 
             // Redis may return empty results, so protect against that
             if ($keys !== false) {
