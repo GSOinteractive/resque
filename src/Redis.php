@@ -302,7 +302,7 @@ class Redis
         }
 
         try {
-            return $this->getClient()->__call($name, $args);
+            return call_user_func_array([$this->getClient(), $name], $args);
         } catch (Exception $e) {
             return false;
         }
