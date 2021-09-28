@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/resque.iml" filepath="$PROJECT_DIR$/.idea/resque.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../resque-bundle/.idea/resque-bundle.iml" filepath="$PROJECT_DIR$/../resque-bundle/.idea/resque-bundle.iml" />
     </modules>
   </component>
 </project>
