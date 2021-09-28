@@ -702,14 +702,16 @@ class Engine
             return false;
         }
 
-        foreach ($this->backend->scanLoop(sprintf('delayed:*:%s', $job['name'])) as $result) {
+        $items = $this->backend->keys(sprintf('delayed:*:%s', $job['name']));
+
+        foreach ($items as $result) {
             $prefix = $this->backend->removePrefix($result);
             $result = $this->backend->lIndex($prefix, 0);
             $result = json_decode($result, true);
 
             $this->backend->del($prefix);
 
-            if (!iterator_count($this->backend->scanLoop(sprintf('delayed:%s:*', $result['timestamp'])))) {
+            if (!count($this->backend->keys(sprintf('delayed:%s:*', $result['timestamp'])))) {
                 $this->backend->zrem('delayed_queue_schedule', $result['timestamp']);
             }
         }
@@ -1310,7 +1312,9 @@ class Engine
      */
     public function nextItemForTimestamp($timestamp)
     {
-        foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp)) as $key) {
+        $items = $this->backend->keys(sprintf('delayed:%s:*', $timestamp));
+
+        foreach ($items as $key) {
             return $this->cleanupTimestamp($key, $timestamp);
         }
 
