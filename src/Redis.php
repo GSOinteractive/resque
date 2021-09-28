@@ -40,6 +40,7 @@ use AllProgrammic\Component\Redis\Exception;
  * @method array         sort(string $key, string $arg1, string $valueN = null)
  * @method int           ttl(string $key)
  * @method string        type(string $key)
+ * @method bool|array    scan(int &$ref, string $match = null, int $count = null)
  *
  * Scalars:
  * @method int           append(string $key, string $value)
@@ -135,55 +136,56 @@ class Redis
     const DEFAULT_PORT = 6379;
 
     /**
-     * @var array List of all commands in Redis that supply a key as their
-     *  first argument. Used to prefix keys with the Resque namespace.
+     * @var array List of all commands in Redis that supply a key as argument. Used to prefix keys with the Resque namespace.
+     * value is the index of arguments accepting redis keys
      */
     private $keyCommands = array(
-        'exists',
-        'del',
-        'type',
-        'keys',
-        'expire',
-        'ttl',
-        'move',
-        'set',
-        'setex',
-        'get',
-        'getset',
-        'setnx',
-        'incr',
-        'incrby',
-        'decr',
-        'decrby',
-        'rpush',
-        'lpush',
-        'llen',
-        'lrange',
-        'ltrim',
-        'lindex',
-        'lset',
-        'lrem',
-        'lpop',
-        'blpop',
-        'rpop',
-        'sadd',
-        'srem',
-        'spop',
-        'scard',
-        'sismember',
-        'smembers',
-        'srandmember',
-        'zadd',
-        'zrem',
-        'zrange',
-        'zrevrange',
-        'zrangebyscore',
-        'zcard',
-        'zscore',
-        'zremrangebyscore',
-        'sort',
-        'rename',
-        'rpoplpush'
+        'exists' => 0,
+        'del' => 0,
+        'type' => 0,
+        'keys' => 0,
+        'expire' => 0,
+        'ttl' => 0,
+        'move' => 0,
+        'set' => 0,
+        'setex' => 0,
+        'get' => 0,
+        'getset' => 0,
+        'setnx' => 0,
+        'incr' => 0,
+        'incrby' => 0,
+        'decr' => 0,
+        'decrby' => 0,
+        'rpush' => 0,
+        'lpush' => 0,
+        'llen' => 0,
+        'lrange' => 0,
+        'ltrim' => 0,
+        'lindex' => 0,
+        'lset' => 0,
+        'lrem' => 0,
+        'lpop' => 0,
+        'blpop' => 0,
+        'rpop' => 0,
+        'sadd' => 0,
+        'srem' => 0,
+        'spop' => 0,
+        'scard' => 0,
+        'sismember' => 0,
+        'smembers' => 0,
+        'srandmember' => 0,
+        'zadd' => 0,
+        'zrem' => 0,
+        'zrange' => 0,
+        'zrevrange' => 0,
+        'zrangebyscore' => 0,
+        'zcard' => 0,
+        'zscore' => 0,
+        'zremrangebyscore' => 0,
+        'sort' => 0,
+        'rename' => 0,
+        'rpoplpush' => 0,
+        'scan' => 1,
     );
     // sinterstore
     // sunion
@@ -288,13 +290,14 @@ class Redis
      */
     public function __call($name, $args)
     {
-        if (in_array(strtolower($name), $this->keyCommands)) {
-            if (is_array($args[0])) {
-                foreach ($args[0] as $i => $v) {
-                    $args[0][$i] = $this->namespace . $v;
+        if (array_key_exists(strtolower($name), $this->keyCommands)) {
+            $argIndex = $this->keyCommands[strtolower($name)];
+            if (is_array($args[$argIndex])) {
+                foreach ($args[$argIndex] as $i => $v) {
+                    $args[$argIndex][$i] = $this->namespace . $v;
                 }
             } else {
-                $args[0] = $this->namespace . $args[0];
+                $args[$argIndex] = $this->namespace . $args[$argIndex];
             }
         }
 
@@ -393,5 +396,26 @@ class Redis
             $pass,
             $options,
         );
+    }
+
+    /**
+     * @param string|null $match
+     * @param int|null $count
+     * @return \Generator
+     */
+    public function scanLoop(string $match = null, int $count = null): \Generator
+    {
+        $it = null;
+        do {
+            // Scan for some keys
+            $keys = $this->scan($it, $match, $count);
+
+            // Redis may return empty results, so protect against that
+            if ($keys !== false) {
+                foreach($keys as $key) {
+                    yield $key;
+                }
+            }
+        } while ($it > 0);
     }
 }
