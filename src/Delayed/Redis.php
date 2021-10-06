@@ -49,6 +49,6 @@ class Redis implements DelayedInterface
             $data['start_at'] = new \DateTime(date('Y-m-d H:i:s', $data['timestamp']));
 
             return $data;
-        }, iterator_to_array($this->backend->scanLoop('delayed:*')));
+        }, array_unique(iterator_to_array($this->backend->scanLoop('delayed:*'))));
     }
 }
