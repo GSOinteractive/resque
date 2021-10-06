@@ -394,4 +394,30 @@ class Redis
             $options,
         );
     }
+
+    /**
+     * @param string|null $match
+     * @param int|null $count
+     * @return \Generator
+     */
+    public function scanLoop(string $match = null, int $count = null): \Generator
+    {
+        $it = null;
+        do {
+            // Scan for some keys
+            $keys = $this->__call('scan', [&$it, $match, $count]);
+
+            // Redis may return empty results, so protect against that
+            if ($keys !== false) {
+                foreach($keys as $key) {
+                    yield $key;
+                }
+            }
+        } while ($it > 0);
+    }
+
+    public function existsPattern(string $match = null): bool
+    {
+        return $this->scanLoop($match, 1)->current() !== null;
+    }
 }

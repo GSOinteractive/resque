@@ -24,7 +24,8 @@
   },
   "autoload": {
     "psr-4": {
-      "AllProgrammic\\Component\\Resque\\": "src"
+      "AllProgrammic\\Component\\Resque\\": "src",
+      "AllProgrammic\\Component\\Resque\\Tests\\": "tests"
     },
     "exclude-from-classmap": [
       "/Tests/"

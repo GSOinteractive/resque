@@ -69,10 +69,9 @@ class Redis implements ChartsInterface
      */
     public function peek($start = 0, $count = 1)
     {
-        $keys = $this->backend->keys(sprintf('%s:*', Charts::INDEX_CLEANED));
         $data = [];
 
-        foreach ($keys as $result) {
+        foreach ($this->backend->scanLoop(sprintf('%s:*', Charts::INDEX_CLEANED)) as $result) {
             $time = substr($result, strlen(sprintf('%s%s:', $this->backend->getNamespace(), Charts::INDEX_CLEANED)));
 
             $data[] = [
