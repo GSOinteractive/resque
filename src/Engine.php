@@ -1310,7 +1310,10 @@ class Engine
      */
     public function nextItemForTimestamp($timestamp)
     {
-        foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp), 1) as $key) {
+        // fixme try again with scan but with another way :         foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp), 1) as $key) {
+        $items = $this->backend->keys(sprintf('delayed:%s:*', $timestamp));
+
+        foreach ($items as $key) {
             return $this->cleanupTimestamp($key, $timestamp);
         }
 
