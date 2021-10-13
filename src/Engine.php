@@ -1306,18 +1306,13 @@ class Engine
      * Pop a job off the delayed queue for a given timestamp.
      *
      * @param \DateTime|int $timestamp Instance of DateTime or UNIX timestamp.
-     * @return array Matching job at timestamp.
+     * @return \Generator Matching job at timestamp.
      */
-    public function nextItemForTimestamp($timestamp)
+    public function nextItemForTimestamp($timestamp): \Generator
     {
-        // fixme try again with scan but with another way :         foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp), 1) as $key) {
-        $items = $this->backend->keys(sprintf('delayed:%s:*', $timestamp));
-
-        foreach ($items as $key) {
-            return $this->cleanupTimestamp($key, $timestamp);
+        foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp)) as $key) {
+            yield $this->cleanupTimestamp($key, $timestamp);
         }
-
-        return false;
     }
 
     /**
