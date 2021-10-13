@@ -25,6 +25,7 @@ use AllProgrammic\Component\Redis\Exception;
  * @method array         exec()
  * @method string        flushAll()
  * @method string        flushDb()
+ * @method int           dbsize()
  * @method array         info()
  * @method bool|array    config(string $setGet, string $key, string $value = null)
  *
@@ -399,11 +400,16 @@ class Redis
 
     /**
      * @param string|null $match
-     * @param int|null $count
+     * @param int|null $count when null an auto calculated value is used: 20% of dbsize
      * @return \Generator
      */
     public function scanLoop(string $match = null, int $count = null): \Generator
     {
+        if ($count === null) {
+            // we use 20% of total number of keys because, bench seems to show that result to same blocking time per iteration than using keys
+            $count = intval(round($this->dbsize()*20/100));
+        }
+
         $it = null;
         do {
             // Scan for some keys
@@ -420,6 +426,6 @@ class Redis
 
     public function existsPattern(string $match = null): bool
     {
-        return $this->scanLoop($match, 1)->current() !== null;
+        return $this->scanLoop($match)->current() !== null;
     }
 }

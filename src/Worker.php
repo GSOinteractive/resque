@@ -861,8 +861,7 @@ class Worker
             return false;
         }
 
-        while ($item = $this->engine->nextItemForTimestamp($timestamp)) {
-
+        foreach ($this->engine->nextItemForTimestamp($timestamp) as $item) {
             $this->log(LogLevel::INFO, sprintf('Queueing %s in %s [delayed]', $item['class'], $item['queue']));
 
             $id = Engine::generateJobId();

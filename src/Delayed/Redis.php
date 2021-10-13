@@ -32,7 +32,7 @@ class Redis implements DelayedInterface
      */
     public function count()
     {
-        return $this->backend->zCard('delayed_queue_schedule');
+        return count(array_unique(iterator_to_array($this->backend->scanLoop('delayed:*'))));
     }
 
     /**
@@ -43,12 +43,15 @@ class Redis implements DelayedInterface
      */
     public function peek($start = 0, $count = 1)
     {
+        $delayed = array_unique(iterator_to_array($this->backend->scanLoop('delayed:*')));
+        sort($delayed);
+        $delayed = array_slice($delayed, $start, $count);
         return array_map(function ($value) {
             $data = $this->backend->lIndex($this->backend->removePrefix($value), 0);
             $data = json_decode($data, true);
             $data['start_at'] = new \DateTime(date('Y-m-d H:i:s', $data['timestamp']));
 
             return $data;
-        }, array_unique(iterator_to_array($this->backend->scanLoop('delayed:*'))));
+        }, $delayed);
     }
 }
