@@ -776,7 +776,7 @@ class Engine
                 continue;
             }
 
-            if ($job['args']['timestamp'] === $timestamp) {
+            if ($job['args']['timestamp'] == $timestamp) {
                 return true;
             }
         }
