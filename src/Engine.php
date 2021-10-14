@@ -56,9 +56,6 @@ class Engine
     /** @var Lock */
     private $delayedLock;
 
-    /** @var Lock */
-    private $historyLock;
-
     /** @var Stat */
     private $stat;
 
@@ -89,7 +86,6 @@ class Engine
      * @param CleanerInterface $cleanerHandler
      * @param Charts $charts
      * @param Lock $delayedLock
-     * @param Lock $historyLock
      * @param LoggerInterface|null $logger
      */
     public function __construct(
@@ -105,7 +101,6 @@ class Engine
         CleanerInterface $cleanerHandler,
         Charts $charts,
         Lock $delayedLock,
-        Lock $historyLock,
         LoggerInterface $logger = null,
         $mailSender = null
     ) {
@@ -121,7 +116,6 @@ class Engine
         $this->cleanerHandler = $cleanerHandler;
         $this->charts = $charts;
         $this->delayedLock = $delayedLock;
-        $this->historyLock = $historyLock;
         $this->mailSender = $mailSender;
 
         $this->supervisor = new Supervisor($this, $this->backend, $heart, $dispatcher, $failureHandler, $delayedLock, $logger);
