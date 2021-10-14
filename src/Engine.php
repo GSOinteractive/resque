@@ -56,6 +56,9 @@ class Engine
     /** @var Lock */
     private $delayedLock;
 
+    /** @var Lock */
+    private $historyLock;
+
     /** @var Stat */
     private $stat;
 
@@ -86,6 +89,7 @@ class Engine
      * @param CleanerInterface $cleanerHandler
      * @param Charts $charts
      * @param Lock $delayedLock
+     * @param Lock $historyLock
      * @param LoggerInterface|null $logger
      */
     public function __construct(
@@ -101,6 +105,7 @@ class Engine
         CleanerInterface $cleanerHandler,
         Charts $charts,
         Lock $delayedLock,
+        Lock $historyLock,
         LoggerInterface $logger = null,
         $mailSender = null
     ) {
@@ -116,6 +121,7 @@ class Engine
         $this->cleanerHandler = $cleanerHandler;
         $this->charts = $charts;
         $this->delayedLock = $delayedLock;
+        $this->historyLock = $historyLock;
         $this->mailSender = $mailSender;
 
         $this->supervisor = new Supervisor($this, $this->backend, $heart, $dispatcher, $failureHandler, $delayedLock, $logger);
@@ -824,6 +830,11 @@ class Engine
     {
         $key = sprintf('%s:%s', RecurringJob::KEY_HISTORY_JOBS, $job->getName());
 
+        $lock = new Lock($this->getBackend(), $key);
+        if (!$lock->lock()) {
+            return;
+        }
+
         $history = new \StdClass();
         $history->start_at = $date;
         $history->name = $job->getName();
@@ -839,12 +850,15 @@ class Engine
         }
 
         if (!isset($job->getArgs()['timestamp'])) {
+            $lock->release();
             return;
         }
 
         if (!$this->isJobInHistory($job->getName(), $job->getArgs()['timestamp'])) {
             $this->backend->lPush($key, json_encode($history));
         }
+
+        $lock->release();
     }
 
     /**
