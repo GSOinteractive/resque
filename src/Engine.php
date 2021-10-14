@@ -767,7 +767,7 @@ class Engine
     public function isJobInHistory($name, $timestamp)
     {
         $key  = sprintf('%s:%s', RecurringJob::KEY_HISTORY_JOBS, $name);
-        $jobs = $this->backend->lRange($key, 0, 0);
+        $jobs = $this->backend->lRange($key, 0, -1);
 
         foreach ($jobs as $job) {
             $job = json_decode($job, true);
@@ -1178,6 +1178,7 @@ class Engine
         $suffix = sprintf('delayed:%s:%s', $timestamp, $item['name']);
 
         // Handle multiple delayed jobs
+        // tryfix: je ne comprends pas comment c'est possible mais il arrive qu'il y ait plusieurs item dans la liste bien qu'il y ait cette protection
         if ($this->backend->exists($suffix)) {
             return false;
         }
@@ -1222,13 +1223,19 @@ class Engine
     {
         $key  = $this->backend->removePrefix($key);
         $item = $this->backend->lpop($key);
-        $item = json_decode($item, true);
 
-        $timestamp = $this->getTimestamp($timestamp);
+        if ($item) {
+            $item = json_decode($item, true);
 
-        if ($this->backend->llen($key) == 0) {
-            $this->backend->del($key);
-            $this->backend->zrem('delayed_queue_schedule', $timestamp);
+            $timestamp = $this->getTimestamp($timestamp);
+
+            if ($this->backend->llen($key) == 0) {
+                $this->backend->del($key);
+                // we want to remove next timestamp only when all element was treated
+                if (!$this->backend->existsPattern(sprintf('delayed:%s:*', $timestamp))) {
+                    $this->backend->zrem('delayed_queue_schedule', $timestamp);
+                }
+            }
         }
 
         return $item;
@@ -1311,7 +1318,11 @@ class Engine
     public function nextItemForTimestamp($timestamp): \Generator
     {
         foreach ($this->backend->scanLoop(sprintf('delayed:%s:*', $timestamp)) as $key) {
-            yield $this->cleanupTimestamp($key, $timestamp);
+            // as delayed:*:* is a list we need to loop over its content to completely treat them
+            // although there shouldn't be multiple items in the list, it still happens
+            while ($item = $this->cleanupTimestamp($key, $timestamp)) {
+                yield $item;
+            }
         }
     }
 
